@@ -1,0 +1,34 @@
+@page "/network"
+@using Server.Data
+@inject NetworkService NetworkService
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Network</PageTitle>
+
+<h1>Network</h1>
+
+<p>This component demonstrates network data from a service.</p>
+
+
+<div id="mynetwork" style="width: 1000px; height: 600px;"></div>
+
+
+@code {
+    private Data.Network.Models.GraphRoot? network;
+
+    protected override async Task OnInitializedAsync()
+    {
+        network = await NetworkService.GetNetwork();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && network != null)
+        {
+            await JSRuntime.InvokeVoidAsync(
+            "displayNetwork",
+            network.Seeds.Select(s => new { id = s.Name, label = s.Name }).ToArray(),
+            network.Seeds.Select(s => s.Connections.Select(c => new { from = s.Name, to = c.Name })).SelectMany(x => x).ToArray());
+        }
+    }
+}
